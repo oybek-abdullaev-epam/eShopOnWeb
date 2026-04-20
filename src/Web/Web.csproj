@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Ardalis.ListStartupServices" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
     <PackageReference Include="Ardalis.Specification" />
     <PackageReference Include="Aspire.Seq" />
     <PackageReference Include="AspNetCore.Security.OAuth.Extensions" />

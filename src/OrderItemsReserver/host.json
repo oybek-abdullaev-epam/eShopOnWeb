@@ -1,0 +1,14 @@
+{
+  "version": "2.0",
+  "logging": {
+    "logLevel": {
+      "Microsoft.eShopWeb.OrderItemsReserver": "Information"
+    },
+    "applicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request"
+      }
+    }
+  }
+}

@@ -87,6 +87,8 @@ builder.Services.AddBlazor(builder.Configuration);
 builder.Services.AddMetronome();
 builder.AddSeqEndpoint(connectionName: "seq");
 
+builder.Services.AddApplicationInsightsTelemetry(builder.Configuration);
+
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
 var app = builder.Build();

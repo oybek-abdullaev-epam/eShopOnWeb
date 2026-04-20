@@ -1,4 +1,5 @@
 ﻿using Microsoft.eShopWeb.ApplicationCore.Services;
+using Microsoft.eShopWeb.Web.EventHandlers;
 using Microsoft.eShopWeb.Web.Interfaces;
 using Microsoft.eShopWeb.Web.Services;
 
@@ -20,6 +21,13 @@ public static class ConfigureWebServices
         services.AddScoped<ICatalogItemViewModelService, CatalogItemViewModelService>();
         services.Configure<CatalogSettings>(configuration);
         services.AddScoped<ICatalogViewModelService, CachedCatalogViewModelService>();
+
+        services.AddHttpClient<IOrderItemsReserverClient, OrderItemsReserverClient>((sp, client) =>
+        {
+            var functionUrl = configuration["OrderItemsReserver:FunctionUrl"]
+                ?? throw new InvalidOperationException("OrderItemsReserver:FunctionUrl is not configured.");
+            client.BaseAddress = new Uri(functionUrl);
+        });
 
         return services;
     }

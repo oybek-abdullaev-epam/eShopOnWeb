@@ -9,8 +9,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 dotnet restore
 dotnet build ./eShopOnWeb.sln --configuration Release
 
-# Run tests
+# Run tests (all)
 dotnet test ./eShopOnWeb.sln
+
+# Run a single test project
+dotnet test tests/UnitTests/UnitTests.csproj
+
+# Run tests matching a class or method name
+dotnet test tests/UnitTests/UnitTests.csproj --filter "FullyQualifiedName~OrderItemsReserver"
+
+# Run with coverage
 dotnet test ./eShopOnWeb.sln --collect:"XPlat Code Coverage" --logger trx --results-directory coverage
 
 # Run the web app (browse to https://localhost:5001)
@@ -21,6 +29,10 @@ cd src/PublicApi && dotnet run
 
 # Run via .NET Aspire (orchestrates Web + PublicApi + Seq)
 cd src/eShopWeb.AppHost && dotnet run
+
+# Run the Azure Function locally (requires Azure Functions Core Tools)
+cd src/OrderItemsReserver && func start
+# Listens on http://localhost:7071 — matches appsettings.Development.json
 
 # Docker
 docker-compose build && docker-compose up
@@ -45,6 +57,7 @@ This is a **Clean Architecture** reference application. Dependencies flow inward
 ```
 Web / PublicApi  →  ApplicationCore  ←  Infrastructure
 BlazorAdmin      →  BlazorShared     ←  ApplicationCore
+OrderItemsReserver  (standalone Azure Function, no shared project references)
 ```
 
 **`ApplicationCore`** — innermost ring, no infrastructure dependencies. Contains:
@@ -63,7 +76,18 @@ BlazorAdmin      →  BlazorShared     ←  ApplicationCore
 
 **`BlazorShared`** — DTOs and FluentValidation validators shared between BlazorAdmin and server-side code.
 
-**`eShopWeb.AppHost`** — .NET Aspire orchestrator for local development (Web + PublicApi + Seq).
+**`eShopWeb.AppHost`** — .NET Aspire orchestrator for local development. Orchestrates: Web, PublicApi, and Seq (structured logging). **Does not include OrderItemsReserver** — start it separately with `func start`.
+
+**`OrderItemsReserver`** — Azure Functions v4 isolated worker (`net10.0`). Exposes a single HTTP-triggered function `POST api/reserve` that writes order reservation data as a JSON blob to Azure Blob Storage. Configured via `OrderItemsStorage` (connection string) and `BlobContainerName` (default: `order-items`).
+
+## Order Placement Flow (cross-project)
+
+When an order is placed, `OrderService.CreateOrderAsync` publishes `OrderCreatedEvent` via MediatR. Two handlers fire:
+
+1. `OrderCreatedHandler` (ApplicationCore) — sends a confirmation email via `IEmailSender`.
+2. `OrderItemsReserverNotificationHandler` (Web/EventHandlers/) — calls `IOrderItemsReserverClient.ReserveAsync`, which POSTs to the Azure Function. Errors are caught and logged; the order is **not** rolled back if the Function is unavailable.
+
+The `OrderItemsReserver:FunctionUrl` config key is required in the Web project — startup throws if it is missing. Development default is `http://localhost:7071/`.
 
 ## Key Patterns
 
@@ -72,6 +96,7 @@ BlazorAdmin      →  BlazorShared     ←  ApplicationCore
 - **Result pattern**: service methods return `Ardalis.Result<T>` instead of throwing.
 - **Caching**: `CachedCatalogViewModelService` is a decorator over `CatalogViewModelService` using `IMemoryCache`.
 - **Domain events**: `OrderCreatedEvent` extends `DomainEventBase` (from `NimblePros.SharedKernel`) and is published via MediatR.
+- **Typed HttpClient**: `IOrderItemsReserverClient` is registered as a typed `HttpClient` in `ConfigureWebServices.cs`; base address comes from `OrderItemsReserver:FunctionUrl`.
 
 ## Package Management
 
@@ -88,4 +113,4 @@ Target framework: `net10.0`. SDK pinned via `global.json` (`rollForward: latestF
 | `tests/FunctionalTests` | HTTP-level tests via `WebApplicationFactory` |
 | `tests/PublicApiIntegrationTests` | FastEndpoints endpoint tests for PublicApi |
 
-Test framework: **xunit.v3**. Mocking: **NSubstitute**.
+Test framework: **xunit.v3**. Mocking: **NSubstitute**. Filter syntax: `--filter "FullyQualifiedName~<ClassName>"`.

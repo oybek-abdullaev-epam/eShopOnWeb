@@ -1,0 +1,11 @@
+### Reserve order items
+POST https://reserver-g4e3g2gpcmd9a0cm.uksouth-01.azurewebsites.net/api/reserve
+Content-Type: application/json
+
+{
+  "OrderId": 1,
+  "Items": [
+    { "ItemId": 101, "Quantity": 2 },
+    { "ItemId": 202, "Quantity": 1 }
+  ]
+}
