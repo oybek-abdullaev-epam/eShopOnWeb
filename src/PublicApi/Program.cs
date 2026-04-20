@@ -1,4 +1,5 @@
-﻿using BlazorShared;
+﻿using System;
+using BlazorShared;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Microsoft.AspNetCore.Builder;
@@ -18,6 +19,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire components.
 builder.AddAspireServiceDefaults();
+
+builder.Services.AddApplicationInsightsTelemetry();
+builder.Logging.AddApplicationInsights();
 
 builder.Services.AddFastEndpoints();
 
