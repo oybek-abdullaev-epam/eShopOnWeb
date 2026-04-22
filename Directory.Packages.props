@@ -74,6 +74,7 @@
     <PackageVersion Include="Microsoft.Azure.Functions.Worker" Version="2.51.0" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
+    <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.44.0" />
     <!-- Aspire -->
     <PackageVersion Include="Aspire.Hosting.Seq" Version="13.0.1" />
     <PackageVersion Include="Aspire.Seq" Version="13.0.1" />

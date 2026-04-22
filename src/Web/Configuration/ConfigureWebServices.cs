@@ -29,6 +29,13 @@ public static class ConfigureWebServices
             client.BaseAddress = new Uri(functionUrl);
         });
 
+        services.AddHttpClient<IDeliveryOrderClient, DeliveryOrderClient>((sp, client) =>
+        {
+            var functionUrl = configuration["DeliveryOrderProcessor:FunctionUrl"]
+                ?? throw new InvalidOperationException("DeliveryOrderProcessor:FunctionUrl is not configured.");
+            client.BaseAddress = new Uri(functionUrl);
+        });
+
         return services;
     }
 }

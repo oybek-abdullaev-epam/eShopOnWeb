@@ -85,7 +85,10 @@ builder.Services.Configure<ServiceConfig>(config =>
 builder.Services.AddBlazor(builder.Configuration);
 
 builder.Services.AddMetronome();
-builder.AddSeqEndpoint(connectionName: "seq");
+if (!string.IsNullOrEmpty(builder.Configuration.GetConnectionString("seq")))
+{
+    builder.AddSeqEndpoint(connectionName: "seq");
+}
 
 builder.Services.AddApplicationInsightsTelemetry(builder.Configuration);
 
